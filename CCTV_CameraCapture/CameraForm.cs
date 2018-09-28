@@ -54,7 +54,7 @@ namespace CCTV_CameraCapture
 
                     SendToFTP(_frame, dateTimeUtc);
                 }
-                counter += 10;
+                counter += 50;
             }
         }
        
@@ -66,7 +66,6 @@ namespace CCTV_CameraCapture
                 { 
                     btn_StartStop.Text = "Start";
                     _capture.Pause();
-
                 }
                 else
                 {
@@ -80,10 +79,7 @@ namespace CCTV_CameraCapture
         public static void SendToFTP(Mat _frame, long dateTimeUtc)
         {
             Bitmap img = _frame.Bitmap;
-            //Work IP
-            FtpWebRequest request = (FtpWebRequest)WebRequest.Create($"ftp://10.210.17.235/CameraCapture_Img_{dateTimeUtc}.jpg");
-            //Home IP
-            //FtpWebRequest request = (FtpWebRequest)WebRequest.Create($"ftp://ftp://192.168.1.4//CameraCapture_Img_{dateTimeUtc}.jpg");
+            FtpWebRequest request = (FtpWebRequest)WebRequest.Create($"ftp://{Properties.Settings.Default.ftpIPHome}/CameraCapture_Img_{dateTimeUtc}.jpg");
             request.Method = WebRequestMethods.Ftp.UploadFile;
             request.Credentials = new NetworkCredential("v.dovnich@gmail.com", "masikas290");
             byte[] fileContents = ImageToByte(img);

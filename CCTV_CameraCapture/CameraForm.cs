@@ -6,13 +6,13 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-// This is the code for your desktop app.
-// Press Ctrl+F5 (or go to Debug > Start Without Debugging) to run your app.
 
 namespace CCTV_CameraCapture
 {
@@ -46,13 +46,19 @@ namespace CCTV_CameraCapture
             {
                 _capture.Retrieve(_frame, 0);
                 ib_Frame.Image = _frame;
-                long dateTime = (long)DateTime.Now.ToUniversalTime().Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
-                if(counter % 1000 == 0) _frame.Save($"C:\\Users\\VDA\\VDA_DATA\\Programming\\Saved_Img\\CameraCapture_Img_{dateTime}.jpg");
+                long dateTimeUtc = (long)DateTime.Now.ToUniversalTime().Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+                if (counter % 1000 == 0)
+                {
+                    //For test
+                    _frame.Save($"C:\\Users\\VDA\\VDA_DATA\\Programming\\Saved_Img\\CameraCapture_Img_{dateTimeUtc}.jpg");
+
+                    SendToFTP(_frame, dateTimeUtc);
+                }
                 counter += 10;
             }
         }
        
-        private void btn_StartStop_Click(object sender, EventArgs e)
+        private void Btn_StartStop_Click(object sender, EventArgs e)
         {
             if (_capture != null)
             {
@@ -69,6 +75,35 @@ namespace CCTV_CameraCapture
                 }
                 _captureInProgress = !_captureInProgress;
             }
+        }
+
+        public static void SendToFTP(Mat _frame, long dateTimeUtc)
+        {
+            Bitmap img = _frame.Bitmap;
+            //Work IP
+            FtpWebRequest request = (FtpWebRequest)WebRequest.Create($"ftp://10.210.17.235/CameraCapture_Img_{dateTimeUtc}.jpg");
+            //Home IP
+            //FtpWebRequest request = (FtpWebRequest)WebRequest.Create($"ftp://ftp://192.168.1.4//CameraCapture_Img_{dateTimeUtc}.jpg");
+            request.Method = WebRequestMethods.Ftp.UploadFile;
+            request.Credentials = new NetworkCredential("v.dovnich@gmail.com", "masikas290");
+            byte[] fileContents = ImageToByte(img);
+            request.ContentLength = fileContents.Length;
+
+            using (Stream requestStream = request.GetRequestStream())
+            {
+                requestStream.Write(fileContents, 0, fileContents.Length);
+            }
+
+            using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
+            {
+                Console.WriteLine($"Upload File Complete, status {response.StatusDescription}");
+            }
+        }
+
+        public static byte[] ImageToByte(Image img)
+        {
+            ImageConverter converter = new ImageConverter();
+            return (byte[])converter.ConvertTo(img, typeof(byte[]));
         }
 
         private void ReleaseData()

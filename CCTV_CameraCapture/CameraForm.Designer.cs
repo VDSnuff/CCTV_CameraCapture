@@ -68,7 +68,7 @@ namespace CCTV_CameraCapture
             this.btn_StartStop.TabIndex = 4;
             this.btn_StartStop.Text = "Start";
             this.btn_StartStop.UseVisualStyleBackColor = true;
-            this.btn_StartStop.Click += new System.EventHandler(this.btn_StartStop_Click);
+            this.btn_StartStop.Click += new System.EventHandler(this.Btn_StartStop_Click);
             // 
             // CameraForm
             // 
